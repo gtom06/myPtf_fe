@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Typography, Card, CardContent, Grid, Button, Box, Alert, CircularProgress } from '@mui/material';
+import { Container, Typography, Card, CardContent, Grid, Button, Box, Alert, CircularProgress, IconButton } from '@mui/material';
 import { fetchWithAuth } from '../utils/fetchWithAuth';
+import PortfolioChart from './PortfolioChart';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 function HomePage({ onLogout }) {
@@ -8,6 +9,10 @@ function HomePage({ onLogout }) {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
     const [showCards, setShowCards] = useState(false);
+    const [selectedPortfolio, setSelectedPortfolio] = useState(null);
+    const [portfolioData, setPortfolioData] = useState(null);
+    const [chartLoading, setChartLoading] = useState(false);
+    const [chartError, setChartError] = useState('');
 
     useEffect(() => {
         let timeoutId;
@@ -19,7 +24,6 @@ function HomePage({ onLogout }) {
             .then(data => setPortfolios(data))
             .catch(err => setError(err.message))
             .finally(() => {
-                // Mostra lo spinner per almeno 0.5 secondi
                 timeoutId = setTimeout(() => {
                     setShowCards(true);
                     setLoading(false);
@@ -31,6 +35,21 @@ function HomePage({ onLogout }) {
     const handleLogout = () => {
         localStorage.removeItem('token');
         if (onLogout) onLogout();
+    };
+
+    const handleCardClick = (portfolio) => {
+        setSelectedPortfolio(portfolio);
+        setChartLoading(true);
+        setChartError('');
+        setPortfolioData(null);
+        fetchWithAuth(`${API_URL}/portfolios/${portfolio.id}/value-history`, {}, onLogout)
+            .then(res => {
+                if (!res.ok) throw new Error('Errore nel recupero dei dati del portafoglio');
+                return res.json();
+            })
+            .then(data => setPortfolioData(data))
+            .catch(err => setChartError(err.message))
+            .finally(() => setChartLoading(false));
     };
 
     return (
@@ -52,7 +71,7 @@ function HomePage({ onLogout }) {
                 ) : (
                     portfolios.map((p) => (
                         <Grid item xs={12} sm={6} md={4} key={p.id || p.name}>
-                            <Card elevation={3}>
+                            <Card elevation={3} sx={{ cursor: 'pointer' }} onClick={() => handleCardClick(p)}>
                                 <CardContent>
                                     <Typography variant="h6" gutterBottom>
                                         {p.name || 'Portafoglio'}
@@ -66,6 +85,16 @@ function HomePage({ onLogout }) {
                     ))
                 )}
             </Grid>
+            {selectedPortfolio && (
+                <Box mt={4}>
+                    <Typography variant="h5" gutterBottom>
+                        {selectedPortfolio.name || 'Portafoglio'} - Andamento
+                    </Typography>
+                    {chartLoading && <CircularProgress />}
+                    {chartError && <Alert severity="error">{chartError}</Alert>}
+                    {portfolioData && <PortfolioChart data={portfolioData} />}
+                </Box>
+            )}
         </Container>
     );
 }
