@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CssBaseline } from '@mui/material';
-import LoginPage from './LoginPage';
-import HomePage from './HomePage';
+import LoginPage from './pages/LoginPage';
+import HomePage from './pages/HomePage';
 
 function App() {
   const [user, setUser] = useState(null);
