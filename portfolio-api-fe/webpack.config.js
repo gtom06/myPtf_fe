@@ -1,5 +1,15 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
+const fs = require('fs');
+const dotenv = require('dotenv');
+
+// Carica variabili da .env
+const envFile = fs.existsSync('.env') ? dotenv.config({ path: '.env' }).parsed : {};
+const envKeys = Object.keys(envFile || {}).reduce((prev, next) => {
+  prev[`process.env.${next}`] = JSON.stringify(envFile[next]);
+  return prev;
+}, {});
 
 module.exports = {
   entry: './src/index.js',
@@ -37,5 +47,6 @@ module.exports = {
       template: path.resolve(__dirname, 'public', 'index.html'),
       filename: 'index.html',
     }),
+    new webpack.DefinePlugin(envKeys),
   ],
 };

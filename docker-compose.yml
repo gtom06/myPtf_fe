@@ -3,7 +3,5 @@ services:
     build:
       context: ./portfolio-api-fe
     ports:
-      - "8081:80"
+      - "8080:80"
     restart: unless-stopped
-    volumes:
-      - ./portfolio-api-fe:/app

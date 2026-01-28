@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './index.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 
 function LoginPage({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -13,7 +15,7 @@ function LoginPage({ onLogin }) {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('http://host.docker.internal:8080/login', {
+      const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
