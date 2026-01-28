@@ -1,0 +1,9 @@
+services:
+  frontend:
+    build:
+      context: ./portfolio-api-fe
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+    volumes:
+      - ./portfolio-api-fe:/app
