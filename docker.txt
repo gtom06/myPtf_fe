@@ -1,2 +1,2 @@
 docker build -t portfolio-api-fe .
-docker run -p 8081:80 portfolio-api-fe
+docker run -p 8080:80 portfolio-api-fe
