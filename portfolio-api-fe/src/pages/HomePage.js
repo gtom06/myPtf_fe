@@ -42,14 +42,33 @@ function HomePage({ onLogout }) {
         setChartLoading(true);
         setChartError('');
         setPortfolioData(null);
-        fetchWithAuth(`${API_URL}/portfolios/${portfolio.id}/value-history`, {}, onLogout)
-            .then(res => {
-                if (!res.ok) throw new Error('Errore nel recupero dei dati del portafoglio');
-                return res.json();
-            })
-            .then(data => setPortfolioData(data))
-            .catch(err => setChartError(err.message))
-            .finally(() => setChartLoading(false));
+        // Caching: chiave per ogni portafoglio
+        const cacheKey = `portfolio-value-history-${portfolio.id}`;
+        const cacheStr = localStorage.getItem(cacheKey);
+        let cache;
+        try {
+            cache = cacheStr ? JSON.parse(cacheStr) : null;
+        } catch {
+            cache = null;
+        }
+        // Cache valida per 30 minuti
+        const isValid = cache && cache.timestamp && (Date.now() - cache.timestamp < 30 * 60 * 1000);
+        if (isValid && cache.data) {
+            setPortfolioData(cache.data);
+            setChartLoading(false);
+        } else {
+            fetchWithAuth(`${API_URL}/portfolios/${portfolio.id}/value-history`, {}, onLogout)
+                .then(res => {
+                    if (!res.ok) throw new Error('Errore nel recupero dei dati del portafoglio');
+                    return res.json();
+                })
+                .then(data => {
+                    setPortfolioData(data);
+                    localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now() }));
+                })
+                .catch(err => setChartError(err.message))
+                .finally(() => setChartLoading(false));
+        }
     };
 
     return (
