@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Container, Typography, Card, CardContent, Grid, Button, Box, Alert, CircularProgress, IconButton } from '@mui/material';
 import { fetchWithAuth } from '../utils/fetchWithAuth';
 import PortfolioChart from './PortfolioChart';
+import { logoutAll } from '../utils/logout';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 function HomePage({ onLogout }) {
@@ -32,10 +33,6 @@ function HomePage({ onLogout }) {
         return () => clearTimeout(timeoutId);
     }, [onLogout]);
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        if (onLogout) onLogout();
-    };
 
     const handleCardClick = (portfolio) => {
         setSelectedPortfolio(portfolio);
@@ -73,9 +70,8 @@ function HomePage({ onLogout }) {
 
     return (
         <Container maxWidth="md" sx={{ mt: 4 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+            <Box mb={3}>
                 <Typography variant="h4" component="h1">Portafogli</Typography>
-                <Button variant="outlined" color="secondary" onClick={handleLogout}>Logout</Button>
             </Box>
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
             <Grid container spacing={3}>

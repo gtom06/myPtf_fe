@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { CssBaseline } from '@mui/material';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import { logoutAll } from './utils/logout';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -10,36 +13,50 @@ function App() {
     // Se c'è un token, considera l'utente autenticato
     const token = localStorage.getItem('token');
     if (token) {
-      // Puoi decodificare il token per ottenere lo username, oppure usare un valore fittizio
       setUser('utente');
     }
   }, []);
 
+  const appStyle = {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+  };
+
   if (!user) {
-    // Aggiorna l'URL se non già su /login
     if (window.location.pathname !== '/login') {
       window.history.pushState({}, '', '/login');
     }
-    return <LoginPage onLogin={username => {
-      setUser(username);
-      // Aggiorna l'URL su homepage dopo login
-      window.history.pushState({}, '', '/homepage');
-    }} />;
+    return (
+      <div style={appStyle}>
+        <CssBaseline />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <LoginPage onLogin={username => {
+            setUser(username);
+            window.history.pushState({}, '', '/homepage');
+          }} />
+        </div>
+        <Footer />
+      </div>
+    );
   }
   const handleLogout = () => {
+    logoutAll();
     setUser(null);
-    // Aggiorna l'URL su /login dopo logout
     window.history.pushState({}, '', '/login');
   };
-  // Aggiorna l'URL su /homepage se non già lì
   if (window.location.pathname !== '/homepage') {
     window.history.pushState({}, '', '/homepage');
   }
   return (
-    <>
+    <div style={appStyle}>
       <CssBaseline />
-      <HomePage onLogout={handleLogout} />
-    </>
+      <Header onLogout={handleLogout} />
+      <div style={{ flex: 1 }}>
+        <HomePage onLogout={handleLogout} />
+      </div>
+      <Footer />
+    </div>
   );
 }
 
