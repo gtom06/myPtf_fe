@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Box, CircularProgress, Typography, Grid, Button } from '@mui/material';
 import PortfolioChart from '../components/PortfolioChart';
-import PortfolioSummary from '../components/PortfolioSummary'; 
+import PortfolioSummary from '../components/PortfolioSummary';
+import PositionsTable from '../components/PositionsTable'; 
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -18,7 +19,15 @@ function PortfolioChartPage() {
         fetch(`${API_URL}/portfolios/${portfolioId}/value-history`, {
             headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
         })
-        .then(res => res.json())
+        .then(res => {
+            if (res.status === 401) {
+                localStorage.clear();
+                window.history.pushState({}, '', '/login');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+                throw new Error('Token scaduto');
+            }
+            return res.json();
+        })
         .then(d => {
             setData(d);
             localStorage.setItem(`history_${portfolioId}`, JSON.stringify(d));
@@ -50,6 +59,9 @@ function PortfolioChartPage() {
                 </Grid>
                 <Grid item xs={12} md={4}>
                     <PortfolioSummary portfolioId={portfolioId} />
+                </Grid>
+                <Grid item xs={12}>
+                    <PositionsTable portfolioId={portfolioId} />
                 </Grid>
             </Grid>
         </Container>

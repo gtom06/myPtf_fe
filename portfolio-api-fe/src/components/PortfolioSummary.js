@@ -20,7 +20,15 @@ function PortfolioSummary({ portfolioId }) {
         fetch(`${API_URL}/portfolios/${portfolioId}/value-last`, {
             headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
         })
-        .then(res => res.json())
+        .then(res => {
+            if (res.status === 401) {
+                localStorage.clear();
+                window.history.pushState({}, '', '/login');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+                throw new Error('Token scaduto');
+            }
+            return res.json();
+        })
         .then(data => {
             setLastValue(data);
             localStorage.setItem(cacheKey, JSON.stringify(data));
@@ -32,7 +40,7 @@ function PortfolioSummary({ portfolioId }) {
     if (loading && !lastValue) return <CircularProgress />;
 
     if (!lastValue) return null;
-    const isPositive = lastValue.abs_diff >= 0;
+    const isPositive = (lastValue.abs_diff || 0) >= 0;
 
     return (
         <Paper elevation={2} sx={{ 
