@@ -1,5 +1,4 @@
 
-# Unico Dockerfile per dev e prod
 FROM node:18-alpine AS build
 WORKDIR /app
 COPY package.json ./

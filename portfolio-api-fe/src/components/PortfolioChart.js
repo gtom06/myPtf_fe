@@ -31,6 +31,15 @@ function PortfolioChart({ data }) {
     const filtered = data.daily_values.filter(v => !(v.total_value === 0 && v.invested === 0));
     const ranged = filterByRange(filtered, range);
 
+    // Calcola percentuali relative al primo punto del range selezionato
+    const percentageData = ranged.length > 0
+        ? ranged.map(v => {
+            const initialPerf = ranged[0].perc_diff; // Performance iniziale del range
+            const currentPerf = v.perc_diff; // Performance attuale
+            return currentPerf - initialPerf; // Differenza relativa
+          })
+        : ranged.map(v => v.perc_diff);
+
     const chartData = {
         labels: ranged.map(v => new Date(v.date).toLocaleDateString('it-IT')),
         datasets: chartType === 'valore' ? [
@@ -55,7 +64,7 @@ function PortfolioChart({ data }) {
         ] : [
             {
                 label: 'Performance (%)',
-                data: ranged.map(v => v.perc_diff),
+                data: percentageData,
                 borderColor: '#2ecc40',
                 backgroundColor: 'rgba(46, 204, 64, 0.1)',
                 fill: true,
@@ -68,12 +77,35 @@ function PortfolioChart({ data }) {
     const options = {
         responsive: true,
         maintainAspectRatio: false, // Importante per controllare l'altezza manualmente
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
         plugins: {
-            legend: { position: 'top', align: 'end', labels: { usePointStyle: true } }
+            legend: { position: 'top', align: 'end', labels: { usePointStyle: true } },
+            tooltip: {
+                mode: 'index',
+                intersect: false,
+            }
         },
         scales: {
             x: { grid: { display: false } },
-            y: { grid: { color: '#f5f5f5' } }
+            y: { 
+                grid: { 
+                    color: (context) => {
+                        if (context.tick.value === 0) {
+                            return '#666666'; // Linea dello 0 più scura
+                        }
+                        return '#f5f5f5';
+                    },
+                    lineWidth: (context) => {
+                        if (context.tick.value === 0) {
+                            return 2; // Linea dello 0 più spessa
+                        }
+                        return 1;
+                    }
+                }
+            }
         }
     };
 
